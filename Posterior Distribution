@@ -1,0 +1,30 @@
+import matplotlib
+matplotlib.use("TkAgg")
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+true_lambda = 4 
+n_samples = 100
+data = np.random.poisson(true_lambda, size=n_samples)
+
+prior_alpha = 2 
+prior_beta = 1 
+
+posterior_alpha = prior_alpha + np.sum(data)
+posterior_beta = prior_beta + len(data)
+
+posterior_lambda = np.random.gamma(posterior_alpha, 1/posterior_beta, size=10000)
+
+plt.figure(figsize=(8, 4))
+plt.hist(posterior_lambda, bins=30, density=True, color='skyblue', edgecolor='black')
+plt.title('Posterior distribution of $\\lambda$')
+plt.xlabel('$\\lambda$')
+plt.ylabel('Density')
+plt.grid(True)
+plt.savefig("posterior_distribution.png")
+
+mean_lambda = np.mean(posterior_lambda)
+std_lambda = np.std(posterior_lambda)
+print(f"Posterior mean of lambda: {mean_lambda:.2f}")
+print(f"Posterior standard deviation of lambda: {std_lambda:.2f}")
