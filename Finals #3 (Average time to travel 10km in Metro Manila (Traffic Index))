@@ -1,0 +1,88 @@
+#Average time to travel 10km in Metro Manila (Traffic Index)
+# Generating Synthetic Data Based on a Website's True Mean
+np.random.seed(5)
+true_mu = 25.5  # Assumed time to travel 10km in Metro Manila (In Minutes)
+true_sigma = 10  # Assumed standard deviation
+
+data = np.random.normal(true_mu, true_sigma, size=200)
+
+# Prior Belief: Filipinos take 15 mins to travel 10km in Metro Manila
+prior_mu_mean = 15
+prior_mu_precision = 1 / 5**2 
+prior_sigma_alpha = 2
+prior_sigma_beta = 2 
+
+# Updating the prior with observed data
+posterior_mu_precision = prior_mu_precision + len(data) / true_sigma**2
+posterior_mu_mean = (prior_mu_precision * prior_mu_mean + np.sum(data) / true_sigma**2) / posterior_mu_precision
+
+posterior_sigma_alpha = prior_sigma_alpha + len(data) / 2
+posterior_sigma_beta = prior_sigma_beta + np.sum((data - np.mean(data))**2) / 2
+
+# Sampling from the posterior distributions
+posterior_mu = np.random.normal(posterior_mu_mean, 1 / np.sqrt(posterior_mu_precision), size=10000)
+posterior_sigma = np.random.gamma(posterior_sigma_alpha, 1 / posterior_sigma_beta, size=10000)
+
+# Plot the posterior distributions
+plt.figure(figsize=(10, 4))
+plt.subplot(1, 2, 1)
+plt.hist(posterior_mu, bins=30, density=True, color='skyblue', edgecolor='black')
+plt.title('Posterior distribution of Average Time in Traveling 10km in Metro Manila($\mu$)')
+plt.xlabel('Average Travel Time in Traveling 10km in Metro Manila ($\mu$)')
+plt.ylabel('Density')
+
+plt.subplot(1, 2, 2)
+plt.hist(posterior_sigma, bins=30, density=True, color='lightgreen', edgecolor='black')
+plt.title('Posterior distribution of $\sigma$')
+plt.xlabel('$\sigma$')
+plt.ylabel('Density')
+
+plt.tight_layout()
+plt.show()
+
+# Summary statistics
+print("-" * 50)
+print("Summary Statistics for Problem 3")
+print("-" * 50)
+mean_mu = np.mean(posterior_mu)
+std_mu = np.std(posterior_mu)
+print("Mean of mu (updated belief on average travel time (In Minutes)):", round(mean_mu,2))
+print("Standard deviation of mu:", round(std_mu,2))
+
+mean_sigma = np.mean(posterior_sigma)
+std_sigma = np.std(posterior_sigma)
+print("Mean of sigma:", round(mean_sigma,2))
+print("Standard deviation of sigma:", round(std_sigma,2))
+print("-" * 50)
+# Prior distribution of mu for visualization
+prior_mu_samples = np.random.normal(prior_mu_mean, 1 / np.sqrt(prior_mu_precision), size=10000)
+
+# Plot prior vs posterior
+plt.figure(figsize=(6, 4))
+plt.hist(prior_mu_samples, bins=30, density=True, alpha=0.6, label='Prior', color='gray', edgecolor='black')
+plt.hist(posterior_mu, bins=30, density=True, alpha=0.6, label='Posterior', color='skyblue', edgecolor='black')
+
+# Add posterior stats annotation
+posterior_mu_mean = np.mean(posterior_mu)
+posterior_mu_std = np.std(posterior_mu)
+
+plt.text(
+    x=posterior_mu_mean, 
+    y=plt.ylim()[1] * 0.8, 
+    s=f"Posterior μ ≈ {posterior_mu_mean:.2f}\nPosterior σ of μ ≈ {posterior_mu_std:.2f}",
+    bbox=dict(facecolor='white', edgecolor='black'),
+    fontsize=10
+)
+plt.text(
+    x=prior_mu_mean, 
+    y=plt.ylim()[1] * 0.2, 
+    s=f"Prior μ ≈ {prior_mu_mean:.2f}\nPrior σ of μ ≈ {1 / np.sqrt(prior_mu_precision):.2f}",
+    bbox=dict(facecolor='white', edgecolor='black'),
+    fontsize=10
+)
+plt.title('Prior vs Posterior for Mean Travel Time ($\mu$)')
+plt.xlabel('Travel Time (Minutes)')
+plt.ylabel('Density')
+plt.legend()
+plt.tight_layout()
+plt.show()
