@@ -1,0 +1,66 @@
+#Effectiveness of COVID-19 Vaccine
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Simulate observed data
+np.random.seed(42)
+true_mu = 85  # true average effectiveness rate in %
+true_sigma = 5  # standard deviation in effectiveness
+
+# Generate synthetic trial results
+data = np.random.normal(true_mu, true_sigma, size=50)
+
+# Prior belief: vaccine might be less effective
+prior_mu_mean = 75
+prior_mu_precision = 1 / 7**2  # reflects uncertainty in prior belief
+prior_sigma_alpha = 3
+prior_sigma_beta = 20
+
+# Update posterior
+posterior_mu_precision = prior_mu_precision + len(data) / true_sigma**2
+posterior_mu_mean = (prior_mu_precision * prior_mu_mean + np.sum(data) / true_sigma**2) / posterior_mu_precision
+
+posterior_sigma_alpha = prior_sigma_alpha + len(data) / 2
+posterior_sigma_beta = prior_sigma_beta + np.sum((data - np.mean(data))**2) / 2
+
+# Sampling from posterior
+posterior_mu = np.random.normal(posterior_mu_mean, 1 / np.sqrt(posterior_mu_precision), size=10000)
+posterior_sigma = np.random.gamma(posterior_sigma_alpha, 1 / posterior_sigma_beta, size=10000)
+
+# Plot and save posterior histograms
+plt.figure(figsize=(10, 4))
+plt.subplot(1, 2, 1)
+plt.hist(posterior_mu, bins=30, density=True, color='green', edgecolor='black')
+plt.title('Posterior of Vaccine Effectiveness (%) ($\mu$)')
+plt.xlabel('Effectiveness Rate (%)')
+plt.ylabel('Density')
+
+plt.subplot(1, 2, 2)
+plt.hist(posterior_sigma, bins=30, density=True, color='orange', edgecolor='black')
+plt.title('Posterior of $\sigma$ (Effectiveness Variability)')
+plt.xlabel('Standard Deviation ($\sigma$)')
+plt.ylabel('Density')
+
+plt.tight_layout()
+plt.savefig("posterior_distributions.jpeg", dpi=300)
+plt.show()
+
+# Summary statistics
+print("Posterior Mean of μ (Effectiveness %):", round(np.mean(posterior_mu), 2))
+print("Posterior Std of μ:", round(np.std(posterior_mu), 2))
+print("Posterior Mean of σ:", round(np.mean(posterior_sigma), 2))
+print("Posterior Std of σ:", round(np.std(posterior_sigma), 2))
+
+# Prior vs Posterior for Effectiveness Rate
+prior_mu_samples = np.random.normal(prior_mu_mean, 1 / np.sqrt(prior_mu_precision), size=10000)
+
+plt.figure(figsize=(6, 4))
+plt.hist(prior_mu_samples, bins=30, density=True, alpha=0.6, label='Prior', color='gray', edgecolor='black')
+plt.hist(posterior_mu, bins=30, density=True, alpha=0.6, label='Posterior', color='green', edgecolor='black')
+plt.title('Prior vs Posterior: Vaccine Effectiveness ($\mu$)')
+plt.xlabel('Effectiveness Rate (%)')
+plt.ylabel('Density')
+plt.legend()
+plt.tight_layout()
+plt.savefig("prior_vs_posterior_mu.jpeg", dpi=300)
+plt.show()
